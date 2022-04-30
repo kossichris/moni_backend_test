@@ -16,10 +16,21 @@ import { UserEntity } from './user.entity';
 import { AuthGuard } from './guards/auth.guard';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { BackendValidationPipe } from '@app/shared/backendValidation.pipe';
+import { WalletService } from '@app/wallet/wallet.service';
 
 @Controller()
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly walletService: WalletService,
+  ) {}
+
+  @Get('users')
+  @UsePipes(new BackendValidationPipe())
+  async findAll(@User('id') currentUserId: number): Promise<UserEntity[]> {
+    const users = await this.userService.getAllUsers(currentUserId);
+    return users;
+  }
 
   @Post('users')
   @UsePipes(new BackendValidationPipe())
@@ -27,6 +38,12 @@ export class UserController {
     @Body('user') createUserDto: CreateUserDto,
   ): Promise<UserResponseInterface> {
     const user = await this.userService.createUser(createUserDto);
+    if (user) {
+      const wallet = await this.walletService.createWallet(user, {
+        name: user.username,
+        balance: 0,
+      });
+    }
     return this.userService.buildUserResponse(user);
   }
 
@@ -39,7 +56,10 @@ export class UserController {
 
   @Get('user')
   @UseGuards(AuthGuard)
-  async currentUser(@User() user: UserEntity): Promise<UserResponseInterface> {
+  async currentUser(
+    @User('id') userId: number,
+  ): Promise<UserResponseInterface> {
+    const user = await this.userService.getCurrentUser(userId);
     return this.userService.buildUserResponse(user);
   }
 

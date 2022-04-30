@@ -24,9 +24,7 @@ export class WalletService {
   private readonly walletRepository: Repository<WalletEntity>;
   private readonly userRepository: Repository<UserEntity>;
 
-  constructor(private httpService: HttpService) {}
-
-  async getUserWallet(userId: string): Promise<WalletEntity> {
+  async getUserWallet(userId: number): Promise<WalletEntity> {
     const queryBuilder = getRepository(WalletEntity)
       .createQueryBuilder('wallets')
       .leftJoinAndSelect('wallets.author', 'author')

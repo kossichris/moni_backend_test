@@ -41,7 +41,7 @@ export class WalletController {
   @Put()
   @UsePipes(new BackendValidationPipe())
   @UseGuards(AuthGuard)
-  async updaqteWallet(
+  async updateWallet(
     @Body('wallet') walletDto: UpdateWalletDto,
   ): Promise<WalletResponsesInterface> {
     const wallet = await this.walletService.updateWallet(walletDto);
@@ -55,6 +55,7 @@ export class WalletController {
     @User('id') userId: string,
     @Body('wallet') fundDto: FundWalletDto,
   ): Promise<WalletResponsesInterface> {
+    console.log(fundDto);
     const wallet = await this.walletService.fundWallet(fundDto);
     return this.walletService.buildWalletResponse(wallet);
   }
@@ -67,7 +68,7 @@ export class WalletController {
     @Param('recipient_id') recipient_id: string,
     @Body('wallet') transferObject: TransferWalletDto,
   ): Promise<any> {
-    console.log(sender_id, recipient_id);
+    console.log(transferObject);
     return await this.walletService.transferMoney(
       sender_id,
       recipient_id,
@@ -79,7 +80,7 @@ export class WalletController {
   @UsePipes(new BackendValidationPipe())
   @UseGuards(AuthGuard)
   async getUserWallet(
-    @User('id') userId: string,
+    @User('id') userId: number,
   ): Promise<WalletResponsesInterface> {
     const wallet = await this.walletService.getUserWallet(userId);
     return this.walletService.buildWalletResponse(wallet);

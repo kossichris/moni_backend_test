@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UserEntity } from './user.entity';
 import { sign } from 'jsonwebtoken';
@@ -16,6 +16,15 @@ export class UserService {
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
   ) {}
+
+  async getAllUsers(currentUserId: number): Promise<UserEntity[]> {
+    const queryBuilder = getRepository(UserEntity)
+      .createQueryBuilder('users')
+      .where('users.id != :id', { id: currentUserId });
+    const users = await queryBuilder.getMany();
+    console.log(users);
+    return users;
+  }
 
   async createUser(createUserDto: CreateUserDto): Promise<UserEntity> {
     const errorResponse = {
@@ -48,7 +57,7 @@ export class UserService {
   }
 
   async findById(id: number): Promise<UserEntity> {
-    return this.userRepository.findOne(id);
+    return this.userRepository.findOne(id, { relations: ['wallet'] });
   }
 
   async login(loginUserDto: LoginUserDto): Promise<UserEntity> {
@@ -79,6 +88,11 @@ export class UserService {
     }
 
     delete user.password;
+    return user;
+  }
+
+  async getCurrentUser(userId: number): Promise<UserEntity> {
+    const user = await this.findById(userId);
     return user;
   }
 
